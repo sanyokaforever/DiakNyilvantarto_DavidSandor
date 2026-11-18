@@ -61,7 +61,7 @@ namespace DiakNyilvantarto_DavidSandor
                                 reader = cmd.ExecuteReader();
                                 while (reader.Read())
                                 {
-                                    Console.WriteLine($"{reader["id"]} | {reader["nev"]} | {reader["osztaly"]}");
+                                    Console.WriteLine($"{reader["id"]} | {reader["nev"]} | {reader["eletkor"]} | {reader["osztaly"]}");
                                 }
                                 reader.Close();
                                 conn.Close();
@@ -69,6 +69,8 @@ namespace DiakNyilvantarto_DavidSandor
                             case 2:
                                 Console.Write("Név: ");
                                 string nev = Console.ReadLine()?.Trim();
+                                Console.Write("Életkor: ");
+                                string eletkorStr = Console.ReadLine()?.Trim();
                                 Console.Write("Osztály: ");
                                 string osztaly = Console.ReadLine()?.Trim();
                                 if (string.IsNullOrWhiteSpace(nev) || string.IsNullOrWhiteSpace(osztaly))
@@ -76,10 +78,16 @@ namespace DiakNyilvantarto_DavidSandor
                                     Console.WriteLine("A név és az osztály nem lehet üres.");
                                     break;
                                 }
+                                if (!int.TryParse(eletkorStr, out int eletkor) || eletkor < 1)
+                                {
+                                    Console.WriteLine("Az életkor csak pozitív egész szám lehet.");
+                                    break;
+                                }
                                 conn.Open();
-                                sql = "INSERT INTO diakok (nev, osztaly) VALUES (@nev, @osztaly);";
+                                sql = "INSERT INTO diakok (nev, eletkor, osztaly) VALUES (@nev, @eletkor, @osztaly);";
                                 cmd = new MySqlCommand(sql, conn);
                                 cmd.Parameters.AddWithValue("@nev", nev);
+                                cmd.Parameters.AddWithValue("@eletkor", eletkor);
                                 cmd.Parameters.AddWithValue("@osztaly", osztaly);
                                 int erintett = cmd.ExecuteNonQuery();
                                 conn.Close();
@@ -92,7 +100,7 @@ namespace DiakNyilvantarto_DavidSandor
                                 reader = cmd.ExecuteReader();
                                 while (reader.Read())
                                 {
-                                    Console.WriteLine($"{reader["id"]} | {reader["nev"]} | {reader["osztaly"]}");
+                                    Console.WriteLine($"{reader["id"]} | {reader["nev"]} | {reader["eletkor"]} | {reader["osztaly"]}");
                                 }
                                 reader.Close();
                                 conn.Close();
@@ -104,12 +112,27 @@ namespace DiakNyilvantarto_DavidSandor
                                 }
                                 Console.Write("Új név (üresen hagyva marad a régi): ");
                                 string ujNev = Console.ReadLine()?.Trim();
+                                Console.Write("Új életkor (üresen hagyva marad a régi): ");
+                                string ujEletkorStr = Console.ReadLine()?.Trim();
                                 Console.Write("Új osztály (üresen hagyva marad a régi): ");
                                 string ujOsztaly = Console.ReadLine()?.Trim();
+
+                                object ujEletkor = DBNull.Value;
+                                if (!string.IsNullOrWhiteSpace(ujEletkorStr))
+                                {
+                                    if (!int.TryParse(ujEletkorStr, out int parsedEletkor) || parsedEletkor < 1)
+                                    {
+                                        Console.WriteLine("Az életkor csak pozitív egész szám lehet.");
+                                        break;
+                                    }
+                                    ujEletkor = parsedEletkor;
+                                }
+
                                 conn.Open();
-                                sql = "UPDATE diakok SET nev = COALESCE(@nev, nev), osztaly = COALESCE(@osztaly, osztaly) WHERE id = @id;";
+                                sql = "UPDATE diakok SET nev = COALESCE(@nev, nev), eletkor = COALESCE(@eletkor, eletkor), osztaly = COALESCE(@osztaly, osztaly) WHERE id = @id;";
                                 cmd = new MySqlCommand(sql, conn);
                                 cmd.Parameters.AddWithValue("@nev", string.IsNullOrWhiteSpace(ujNev) ? (object)DBNull.Value : ujNev);
+                                cmd.Parameters.AddWithValue("@eletkor", ujEletkor);
                                 cmd.Parameters.AddWithValue("@osztaly", string.IsNullOrWhiteSpace(ujOsztaly) ? (object)DBNull.Value : ujOsztaly);
                                 cmd.Parameters.AddWithValue("@id", id);
                                 erintett = cmd.ExecuteNonQuery();
@@ -123,7 +146,7 @@ namespace DiakNyilvantarto_DavidSandor
                                 reader = cmd.ExecuteReader();
                                 while (reader.Read())
                                 {
-                                    Console.WriteLine($"{reader["id"]} | {reader["nev"]} | {reader["osztaly"]}");
+                                    Console.WriteLine($"{reader["id"]} | {reader["nev"]} | {reader["eletkor"]} | {reader["osztaly"]}");
                                 }
                                 reader.Close();
                                 conn.Close();
